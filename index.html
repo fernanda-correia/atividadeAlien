@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fernanda-Correia</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style> body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; } </style>
+</head>
+
+<body>
+    <script>
+        // definição do tamanho da tela a ser rodada no navegador
+        const larguraJogo = 700;
+        const alturaJogo = 850;
+
+        // definição das especificações do js: programa, tamanho da largura e altura (já descritos pela variável const)
+        const config = {
+            type: Phaser.AUTO,
+            width: larguraJogo,
+            height: alturaJogo,
+
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity:{y: 300},
+                    debug: true
+                }
+            },
+
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        // const pode ser uma alternativa para var ou let
+        // cria uma variável que comporta as especificações das configurações
+        const game = new Phaser.Game(config);
+
+        // adiciona variáveis
+        var alien;
+        var teclado;
+        var fogo;
+        var plataforma;
+        var coracao;
+        var moeda;
+        var pontuacao = 0;
+        var placar;
+
+        // carrega as imagens do assets
+        function preload() {
+            this.load.image('background', 'assets/bg.png');
+            this.load.image('player', 'assets/alienigena.png');
+            this.load.image('fogo', 'assets/turbo.png');
+            this.load.image('coracao', 'assets/coracao.png');
+            this.load.image('tijolo', 'assets/tijolos.png');
+            this.load.image('moeda', 'assets/moeda.png');
+        };
+
+
+        function create() {
+            // odiciona o background
+            this.add.image(larguraJogo/2, alturaJogo/2, 'background');
+            // adiciona a sprite do fogo inicialmente como invisível
+            fogo = this.add.sprite(0, 0, 'fogo');
+            fogo.setVisible(false);
+            
+            // adiciona o alien a sofrer consequencias da gravidade
+            alien = this.physics.add.sprite(larguraJogo/2, 0, 'player');
+            // o alien não transpassa as barreiras da tela
+            alien.setCollideWorldBounds(true);
+        
+
+            // declara o teclado como capacitador dos movimentos
+            teclado = this.input.keyboard.createCursorKeys();
+
+            // define a plataforma como uma imagem estática, ou seja, que não cai com a gravidade
+            plataforma = this.physics.add.staticImage(larguraJogo/2, 2*alturaJogo/3, 'tijolo');
+            // define que o movimento do alien será interrompido pela plataforma
+            this.physics.add.collider(alien, plataforma);
+
+            coracao = this.physics.add.staticImage(larguraJogo/2, alturaJogo/2, 'coracao');
+            this.physics.add.collider(alien, coracao);
+
+            // adiciona a sprite das moedas
+            moeda = this.physics.add.sprite(larguraJogo/2, 0, 'moeda');
+            // define que as moedas não transpassarão os limites da tela
+            moeda.setCollideWorldBounds(true);
+            // define o grau de recuo da moeda quando ela toca o chão
+            moeda.setBounce(0.5);
+            // define que o movimento da moeda será interrompido pela plataforma
+            this.physics.add.collider(moeda, plataforma);
+            this.physics.add.collider(moeda, coracao);
+
+            // o placar continua não aparecendo mesmo com diversas alterações
+            // define as especificações do texto placar
+            placar = this.add.text(50, 50, 'Moedas:' + pontuacao, {fontSize:'45px', fill:'#495613'});
+
+            //adiciona as físicas que envolvem a queda das moedas e a coleta pelo alien
+             this.physics.add.overlap(alien, moeda, function() {
+            // dedine que a moeda permanece invisível até a coleta da posterior
+               moeda.setVisible(false);
+            // define que a moeda cairá aleatóriamente dentro desse intervalo
+              var posicaomoeda_Y = Phaser.Math.RND.between(50, 650);
+            // define a queda das moedas em linha reta
+              moeda.setPosition(posicaomoeda_Y, 100);
+            // define o aumento de pontuação a cada vez que as moedas são coletadas
+              pontuacao += 1;
+            // define o que aparecerá no texto
+              placar.setText('Moedas: ' + pontuacao);
+            // define que as moedas que tornem visíveis enquanto caem
+              moeda.setVisible(true);
+});
+
+    
+           };
+
+        ;
+
+        // define que, quando o botão da esquerda for ativado, o alien se moverá para esquerda
+        function update() {
+            if (teclado.left.isDown) {
+                alien.setVelocityX (-150);}
+
+        // define que, quando o botão da direita for ativado, o alien se moverá para direita
+            else if (teclado.right.isDown) {
+                alien.setVelocityX (150);}
+
+        // define que quando nenhum dos botões estiver ativado, o alien ficará parado
+            else {
+                alien.setVelocityX (0);}
+
+        // define que, quando o botão de cima for ativado, o alien irá voar
+            if (teclado.up.isDown) {
+                alien.setVelocityY (-150);
+        // define que a função turbo será ligada
+                ativarTurbo();}
+        
+        // define que, se o alien não estiver subindo, a função turbo estará desligada
+            else {semTurbo();}
+        // define a posição do fogo
+            fogo.setPosition(alien.x, alien.y + alien.height/2);};
+        
+        // define que o fogo estará visível quando o turbo for ativado no voo
+        function ativarTurbo () {
+            fogo.setVisible (true);};
+        
+        // define que o fogo estará invisível quando o turbo for desligado fora do voo
+        function semTurbo () {
+            fogo.setVisible (false)};
+
+
+            
+
+    </script>
+</body>
+</html>
